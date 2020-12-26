@@ -5,8 +5,8 @@ class UserController {
         this.formElement = document.getElementById(formId);             // Variável formElement recebe o elemento do id form-user-create
         this.tableElement = document.getElementById(tableId);           // Variável tableElement recebe o elemento do id table-users.
         
-        this.onSubmit();
-        this.onEdit();
+        this.onSubmit();                                                // Inicializa o método
+        this.onEdit();                                                  // Inicializa o método
     }
 
     onSubmit(){                                                         // Método do evento de clique do botão "salvar"
@@ -15,7 +15,7 @@ class UserController {
 
             event.preventDefault();                                     // Evita que toda a página seja atualizada sendo apenas o elemento atualizado.
 
-            let btn = this.formElement.querySelector("[type=submit]");
+            let btn = this.formElement.querySelector("[type=submit]");  // Retorna o primeiro elemento do tipo [type=submit]
 
             btn.disabled = true;                                        // Desabilita o botão de salvar
 
@@ -94,17 +94,16 @@ class UserController {
         let isValid = true;
 
         [...this.formElement.elements].forEach((field, index)=>{        // Varre o array relacionado ao elemento (elements) de id=form-user-create  
-                                                                        // e o armazena seus valores seus nomes e respetivos valores .
+                                                                        // e armazena seus valores seus nomes e respetivos valores.
                                                                         // O operador spread [...] "converte" o objeto formElement.elements em um array para ser tratado pelo forEach e não dar problema
- 
-           if(['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value){
+
+                if(['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value){  // Verifica se esses campos estã preenchidos.
 
 
-                field.parentElement.classList.add('has-error');         // Adiciona uma classe pelo classList.add no elemento pai parentElement
-                isValid = false;
+                field.parentElement.classList.add('has-error');         // Adiciona uma classe pelo classList.add no elemento pai parentElement.
+                isValid = false;                                        // Seta a invalidade por não estarem preenchidos.
 
             }
-
 
             if(field.name == "gender") {                            
         
@@ -142,11 +141,12 @@ class UserController {
 
     addLine(dataUser){                                                  // Método que recebe o objeto objectUser do tipo User e renderiza valores na tabela      
 
-    let tr = document.createElement("tr");
-                                                                        //  innerHTML envia para a DOM na tag do id associado a tableElement o HTML abaixo. 
-        
-    tr.dataset.user = JSON.stringify(dataUser);                         //                 //                                                                             
+    let tr = document.createElement("tr");                              // Cria a tag tr
+                                                                        
+    tr.dataset.user = JSON.stringify(dataUser);                         // Neste caso cria no elemento tr um atributo 'data-user' contento uma string (escrito por JSON.stringify)
+                                                                        // a partir do parâmetro que o método recebeu (objeto datauser).    
 
+                                                                        // innerHTML envia para a DOM na tag do id associado a tableElement o HTML abaixo.    
         tr.innerHTML = `
                                                                         
             <td><img src="${dataUser.photo}" alt="User Image" class="img-circle img-sm"></td>
@@ -163,7 +163,39 @@ class UserController {
 
         tr.querySelector(".btn-edit").addEventListener('click', action => {
 
-            console.log(JSON.parse(tr.dataset.user));
+            let json = JSON.parse(tr.dataset.user);                     // Armazena em json a string guardada no atributo data-user na tag tr
+            let form = document.querySelector("#box-user-update");      // Seleciona o id do formulário.
+
+            for (let index in json){                                    // Laço for in varre objeto json obtendo seus parâmetros.
+
+                let field = form.querySelector(`[name = ${index}]`);    // Guarda no objeto field as tags que possuem atributos name (name=name, name=gender, name=birth...)
+                                                                        // sendo o valor do atributo oriundo do índice do for in (index)
+                
+                if(field){
+                   
+                    switch(field.type){
+
+                        case 'file':                                    // Verifica o type do tag photo e manda prosseguir. o continue faz ignorar o resto das instruções e pula próximo laço. 
+                            continue;
+                            break;
+
+                        case 'radio':
+                            field = form.querySelector(`[name=${index}][value=${json[index]}]`);    // Seletor captura as tagsq ue contém name=radio e value=M ou value=F.
+                            field.checked = true;                                                   // Marca o seletor selecionado
+                            break;
+
+                        case 'checkbox':
+                            field.checked = json[index];
+                            break;
+
+                        default:
+                            field.value = json[index];
+                    }
+ 
+                }
+                
+            }
+            
             this.showPanelUpdate();
             
 
@@ -184,18 +216,18 @@ class UserController {
 
     }
 
-    countUsers(){
+    countUsers(){ 
 
         let numberUsers = 0;
         let numberAdmins = 0;
 
-        [...this.tableElement.children].forEach((tr) => {
+        [...this.tableElement.children].forEach((tr) => {               // Conta pelo forEach quantas tags tr temos em tableElement.
 
             numberUsers++;
 
-            let user = JSON.parse(tr.dataset.user);                     // JSON.parse faz string se tornar um arquivo JSON
+            let user = JSON.parse(tr.dataset.user);                     // Guarda em user os atributos de data-user no elemento tr e converte a string em arquivo JSON.
 
-            if(user.admin == "Sim") numberAdmins++
+            if(user.admin == "Sim") numberAdmins++                      // Adiciona valor caso seja administrador.
     
 
         });
