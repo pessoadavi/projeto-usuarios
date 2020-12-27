@@ -1,42 +1,43 @@
 class UserController {
 
-    constructor(formId, tableId){                                       // Contrutor recebe os dois id's do objeto userController, respectivamente . 
+    constructor(formIdCreate, formIdUpdate, tableId){                   // Contrutor recebe os dois id's do objeto userController, respectivamente . 
 
-        this.formElement = document.getElementById(formId);             // Variável formElement recebe o elemento do id form-user-create
-        this.tableElement = document.getElementById(tableId);           // Variável tableElement recebe o elemento do id table-users.
+        this.formElementCreate = document.getElementById(formIdCreate);       // Variável formElementCreate recebe o elemento do id form-user-create.
+        this.formElementUpdate = document.getElementById(formIdUpdate);       // Variável formElementCreate recebe o elemento do id form-user-update.
+        this.tableElement = document.getElementById(tableId);                 // Variável tableElement recebe o elemento do id table-users.
         
-        this.onSubmit();                                                // Inicializa o método
-        this.onEdit();                                                  // Inicializa o método
+        this.onSubmit();                                                // Inicializa o método.
+        this.onEdit();                                                  // Inicializa o método.
     }
 
-    onSubmit(){                                                         // Método do evento de clique do botão "salvar"
+    onSubmit(){                                                               // Método do evento de clique do botão "salvar"
 
-        this.formElement.addEventListener('submit',(event)=>{           // Escuta o evento na DOM do id form-user-create quando o evento submit é acionado.
+        this.formElementCreate.addEventListener('submit',(event)=>{           // Escuta o evento na DOM do id form-user-create quando o evento submit é acionado.
 
-            event.preventDefault();                                     // Evita que toda a página seja atualizada sendo apenas o elemento atualizado.
+            event.preventDefault();                                           // Evita que toda a página seja atualizada sendo apenas o elemento atualizado.
 
-            let btn = this.formElement.querySelector("[type=submit]");  // Retorna o primeiro elemento do tipo [type=submit]
+            let btn = this.formElementCreate.querySelector("[type=submit]");  // Retorna o primeiro elemento do tipo [type=submit]
 
-            btn.disabled = true;                                        // Desabilita o botão de salvar
+            btn.disabled = true;                                              // Desabilita o botão de salvar
 
-            let values = this.getFormValues();
+            let values = this.getFormValues(this.formElementCreate);
 
-            if(!values) return false;                                   // Verifica se values é falso, ou seja, boolean. Caso seja interrompe leitura da foto                
+            if(!values) return false;                                         // Verifica se values é falso, ou seja, boolean. Caso seja interrompe leitura da foto                
 
             this.getPhoto().then(
                 
-                (content)=>{                                             // Função com o retorno do método caso a promisse seja atendida (resolve)
-                    values.setPhoto = content;                           // Guarda a imagem no atributo photo do objecto values   
+                (content)=>{                                                  // Função com o retorno do método caso a promisse seja atendida (resolve)
+                    values.setPhoto = content;                                // Guarda a imagem no atributo photo do objecto values   
 
-                    this.addLine(values);                                // Método que renderiza os dados do formulário a partir dos dados armazenados pelo getFormValues()
+                    this.addLine(values);                                     // Método que renderiza os dados do formulário a partir dos dados armazenados pelo getFormValues()
 
-                    this.formElement.reset();                            // Limpa o formulário   
+                    this.formElementCreate.reset();                           // Limpa o formulário   
 
-                    btn.disabled = false;                                // Habilita o botão de salvar
+                    btn.disabled = false;                                     // Habilita o botão de salvar
                 },
                 
                 
-                (erro)=>{                                                // Função com o retorno do método caso a promisse não seja atendida (reject)  
+                (erro)=>{                                                     // Função com o retorno do método caso a promisse não seja atendida (reject)  
                     console.error(erro);
 
                 });
@@ -44,58 +45,61 @@ class UserController {
         });
     }
 
+    onEdit(){
 
-    getPhoto(){
+        document.querySelector("#box-user-update .btn-delete").addEventListener('click', event =>{
 
-        return new Promise((resolve, reject) =>{                            // Retorna o objeto Promisse 
-            
-            let fileReader = new FileReader();                              // Objeto do tipo FileReader
-
-            let elements = [...this.formElement.elements].filter(item =>{   // Método filter retorna um valor do array especificada pela função de callback (item)
-    
-                if(item.name === "photo") {                                 // Nome do item é photo? Se sim ele retorna o valor e guarda em elements
-                    return item;
-                }
-    
-            });
-    
-            let file = elements[0].files[0];                                // atributo files[0] contém as informações do arquivo que foi lido como verificado no consolo.log
-                                                                            // o index é [0], pois pode ser mais de um arquivo. Então pego o primeiro.
-    
-
-            if(file){
-                
-                fileReader.readAsDataURL(file);                             // Método que lê o conteúdo do arquivo
-            
-            } else {
-                
-                resolve('dist/img/boxed-bg.jpg');
-
-            } 
-              
-    
-            fileReader.onload = () => {                                     // Manipulador de evento que é executado quando a leitura do arquivo é feita com sucesso
-    
-                resolve(fileReader.result);                                 // Caso a promisse seja atendida ele retorna o result do fileReader pelo resolve
-                
-            };
-
-            fileReader.onerror = (erro) => {                                // Manipulador de evento que é executado quando a leitura do arquivo é mal sucedida
-
-                reject(erro);                                               // Caso a promisse não seja atendida ele retorna o erro do fileReader pelo reject
-            }
+            this.showPanelCreate();
         });
+
+        this.formElementUpdate.addEventListener('submit', event =>{
+
+            event.preventDefault();
+
+            let btn = this.formElementUpdate.querySelector("[type=submit]");
+
+            btn.disabled = true;
+
+            let values = this.getFormValues(this.formElementUpdate);
+
+            console.log(values);
+
+            let index = this.formElementUpdate.dataset.trIndex;
+           
+            let tr = this.tableElement.rows[index];
+
+            tr.dataset.user = JSON.stringify(values);       // Reescreve o data-user já existente
+
+            tr.innerHTML = `
+                                                                        
+            <td><img src="${values.photo}" alt="User Image" class="img-circle img-sm"></td>
+            <td>${values.name}</td>
+            <td>${values.email}</td>
+            <td>${values.admin}</td>
+            <td>${Utils.dateFormat(values.register)}</td>
+            <td>
+                <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
+                <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
+            </td>
+       
+        `;
+
+        this.addEventsTr(tr);
+
+        this.countUsers();
+
+        });
+
     }
 
-
-    getFormValues(){                                                    // Método que capta as informações dos campos do fomulário.
+    getFormValues(formElement){                                          // Método que capta as informações dos campos do fomulário.
 
         let user = {};                                                  // Cria um arquivo JSON chamado user. 
         let isValid = true;
 
-        [...this.formElement.elements].forEach((field, index)=>{        // Varre o array relacionado ao elemento (elements) de id=form-user-create  
+        [...formElement.elements].forEach((field, index)=>{             // Varre o array relacionado ao elemento (elements) de id=form-user-create  
                                                                         // e armazena seus valores seus nomes e respetivos valores.
-                                                                        // O operador spread [...] "converte" o objeto formElement.elements em um array para ser tratado pelo forEach e não dar problema
+                                                                        // O operador spread [...] "converte" o objeto formElementCreate.elements em um array para ser tratado pelo forEach e não dar problema
 
                 if(['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value){  // Verifica se esses campos estã preenchidos.
 
@@ -139,10 +143,56 @@ class UserController {
         return objectUser;                                              // Retorna para o método addLine um objeto objectUser do tipo User.
     }
 
+
+    getPhoto(){
+
+        return new Promise((resolve, reject) =>{                            // Retorna o objeto Promisse 
+            
+            let fileReader = new FileReader();                              // Objeto do tipo FileReader
+
+            let elements = [...this.formElementCreate.elements].filter(item =>{   // Método filter retorna um valor do array especificada pela função de callback (item)
+    
+                if(item.name === "photo") {                                 // Nome do item é photo? Se sim ele retorna o valor e guarda em elements
+                    return item;
+                }
+    
+            });
+    
+            let file = elements[0].files[0];                                // atributo files[0] contém as informações do arquivo que foi lido como verificado no consolo.log
+                                                                            // o index é [0], pois pode ser mais de um arquivo. Então pego o primeiro.
+    
+
+            if(file){
+                
+                fileReader.readAsDataURL(file);                             // Método que lê o conteúdo do arquivo
+            
+            } else {
+                
+                resolve('dist/img/boxed-bg.jpg');
+
+            } 
+              
+    
+            fileReader.onload = () => {                                     // Manipulador de evento que é executado quando a leitura do arquivo é feita com sucesso
+    
+                resolve(fileReader.result);                                 // Caso a promisse seja atendida ele retorna o result do fileReader pelo resolve
+                
+            };
+
+            fileReader.onerror = (erro) => {                                // Manipulador de evento que é executado quando a leitura do arquivo é mal sucedida
+
+                reject(erro);                                               // Caso a promisse não seja atendida ele retorna o erro do fileReader pelo reject
+            }
+        });
+    }
+
+
+    
+
     addLine(dataUser){                                                  // Método que recebe o objeto objectUser do tipo User e renderiza valores na tabela      
 
     let tr = document.createElement("tr");                              // Cria a tag tr
-                                                                        
+     
     tr.dataset.user = JSON.stringify(dataUser);                         // Neste caso cria no elemento tr um atributo 'data-user' contento uma string (escrito por JSON.stringify)
                                                                         // a partir do parâmetro que o método recebeu (objeto datauser).    
 
@@ -161,10 +211,23 @@ class UserController {
        
         `;
 
-        tr.querySelector(".btn-edit").addEventListener('click', action => {
+        this.addEventsTr(tr);
+    
+        this.tableElement.appendChild(tr);                             // AppendChild adiciona html como elemento filho do atual
+    
+        this.countUsers();
+
+    }
+
+    addEventsTr(tr){
+
+        
+        tr.querySelector(".btn-edit").addEventListener('click', event => {
 
             let json = JSON.parse(tr.dataset.user);                     // Armazena em json a string guardada no atributo data-user na tag tr
             let form = document.querySelector("#box-user-update");      // Seleciona o id do formulário.
+            
+            form.dataset.trIndex = tr.sectionRowIndex;                  // Toma o índice da linha. primeira linha é indice zero.
 
             for (let index in json){                                    // Laço for in varre objeto json obtendo seus parâmetros.
 
@@ -200,21 +263,11 @@ class UserController {
             
 
         });
-    
-        this.tableElement.appendChild(tr);                             // AppendChild adiciona html como elemento filhodo atual
-    
-        this.countUsers();
+
 
     }
 
-    onEdit(){
-
-        document.querySelector("#box-user-update .btn-delete").addEventListener('click', action =>{
-
-            this.showPanelCreate();
-        });
-
-    }
+    
 
     countUsers(){ 
 
