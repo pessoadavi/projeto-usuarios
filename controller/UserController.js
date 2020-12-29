@@ -8,7 +8,10 @@ class UserController {
         
         this.onSubmit();                                                // Inicializa o método.
         this.onEdit();                                                  // Inicializa o método.
+        this.selectAll();
+
     }
+
 
     onSubmit(){                                                               // Método do evento de clique do botão "salvar"
 
@@ -24,10 +27,12 @@ class UserController {
 
             if(!values) return false;                                         // Verifica se values é falso, ou seja, boolean. Caso seja interrompe leitura da foto                
 
-            this.getPhoto().then(
+            this.gettingPhoto(this.formElementCreate).then(
                 
                 (content)=>{                                                  // Função com o retorno do método caso a promisse seja atendida (resolve)
                     values.setPhoto = content;                                // Guarda a imagem no atributo photo do objecto values   
+
+                    this.insert(values);
 
                     this.addLine(values);                                     // Método que renderiza os dados do formulário a partir dos dados armazenados pelo getFormValues()
 
@@ -43,11 +48,12 @@ class UserController {
                 });
              
         });
-    }
+     }
+
 
     onEdit(){
 
-        document.querySelector("#box-user-update .btn-delete").addEventListener('click', event =>{
+        document.querySelector("#box-user-update .btn-cancel").addEventListener('click', event =>{
 
             this.showPanelCreate();
         });
@@ -62,37 +68,69 @@ class UserController {
 
             let values = this.getFormValues(this.formElementUpdate);
 
-            console.log(values);
-
-            let index = this.formElementUpdate.dataset.trIndex;
+            let index = this.formElementUpdate.dataset.trIndex;             // Guardo em index a informação do atributo n° da linha do data-tr-index da tag com o id  relacionado a formElementUpdate
            
-            let tr = this.tableElement.rows[index];
+            let tr = this.tableElement.rows[index];                         // Armazena a tag tr da tabela que corresponde ao número da linha - index.
 
-            tr.dataset.user = JSON.stringify(values);       // Reescreve o data-user já existente
+            let oldUser = JSON.parse(tr.dataset.user);                      // Guarda em odlUser os dados de data-user.
 
-            tr.innerHTML = `
+            let result = Object.assign({}, oldUser, values);                // assign pega as informações de values e sobrescreve (apenas nos mesmos parâmetros) em oldUser e guarda em {} salvando em result.                                                            
+
+        this.showPanelCreate();
+
+        this.gettingPhoto(this.formElementUpdate).then(
+                
+            (content)=>{                                                    // Função com o retorno do método caso a promisse seja atendida (resolve)
+
+                if(!values.getPhoto){
+                    
+                    result.photo = oldUser.photo;
+                
+                } else {
+
+                    result.photo = content;
+                }  
+                
+                tr.dataset.user = JSON.stringify(result);                  // Reescreve o data-user já existente na tag tr com os novos valores do objeto values
+
+                                                                           // Imprime na listagem os valores atualizados
+            tr.innerHTML = `                                        
                                                                         
-            <td><img src="${values.photo}" alt="User Image" class="img-circle img-sm"></td>
-            <td>${values.name}</td>
-            <td>${values.email}</td>
-            <td>${values.admin}</td>
-            <td>${Utils.dateFormat(values.register)}</td>
-            <td>
-                <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
-                <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
-            </td>
+                <td><img src="${result.photo}" alt="User Image" class="img-circle img-sm"></td>
+                <td>${result.name}</td>
+                <td>${result.email}</td>
+                <td>${result.admin}</td>
+                <td>${Utils.dateFormat(result.register)}</td>
+                <td>
+                    <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
+                    <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
+                </td>
        
-        `;
+            `;
 
-        this.addEventsTr(tr);
+                this.addEventsTr(tr);
 
-        this.countUsers();
+                this.deleteUser(tr);
+
+                this.countUsers();
+
+                this.formElementUpdate.reset();                           // Limpa o formulário   
+
+                btn.disabled = false;                                     // Habilita o botão de salvar
+            },
+            
+            
+            (erro)=>{                                                     // Função com o retorno do método caso a promisse não seja atendida (reject)  
+                console.error(erro);
+
+            });
 
         });
 
     }
 
-    getFormValues(formElement){                                          // Método que capta as informações dos campos do fomulário.
+
+    getFormValues(formElement){                                         // Método que capta as informações dos campos do fomulário.
 
         let user = {};                                                  // Cria um arquivo JSON chamado user. 
         let isValid = true;
@@ -101,7 +139,7 @@ class UserController {
                                                                         // e armazena seus valores seus nomes e respetivos valores.
                                                                         // O operador spread [...] "converte" o objeto formElementCreate.elements em um array para ser tratado pelo forEach e não dar problema
 
-                if(['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value){  // Verifica se esses campos estã preenchidos.
+                if(['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value){  // Verifica se esses campos estão preenchidose  value não está vazio.
 
 
                 field.parentElement.classList.add('has-error');         // Adiciona uma classe pelo classList.add no elemento pai parentElement.
@@ -144,13 +182,13 @@ class UserController {
     }
 
 
-    getPhoto(){
+    gettingPhoto(formEl){
 
         return new Promise((resolve, reject) =>{                            // Retorna o objeto Promisse 
             
             let fileReader = new FileReader();                              // Objeto do tipo FileReader
 
-            let elements = [...this.formElementCreate.elements].filter(item =>{   // Método filter retorna um valor do array especificada pela função de callback (item)
+            let elements = [...formEl.elements].filter(item =>{   // Método filter retorna um valor do array especificada pela função de callback (item)
     
                 if(item.name === "photo") {                                 // Nome do item é photo? Se sim ele retorna o valor e guarda em elements
                     return item;
@@ -187,12 +225,12 @@ class UserController {
     }
 
 
-    
-
     addLine(dataUser){                                                  // Método que recebe o objeto objectUser do tipo User e renderiza valores na tabela      
 
     let tr = document.createElement("tr");                              // Cria a tag tr
-     
+   
+    //this.insert(dataUser);
+
     tr.dataset.user = JSON.stringify(dataUser);                         // Neste caso cria no elemento tr um atributo 'data-user' contento uma string (escrito por JSON.stringify)
                                                                         // a partir do parâmetro que o método recebeu (objeto datauser).    
 
@@ -214,37 +252,87 @@ class UserController {
         this.addEventsTr(tr);
     
         this.tableElement.appendChild(tr);                             // AppendChild adiciona html como elemento filho do atual
-    
-        this.countUsers();
+
+        this.countUsers();                                             // Atualiza a contagem de usuários.
 
     }
 
+
+    insert(data){
+
+        let users = this.getUsersStorage();
+        
+        users.push(data);                                              // Insere o novo usuários no array de users.
+
+        sessionStorage.setItem("users", JSON.stringify(users));         // Converte novamente para string e guarda novamente em users.
+
+    }
+
+
+    selectAll(){
+
+        let users = this.getUsersStorage();
+
+        users.forEach(dataUser =>{
+
+            let user = new User();
+
+            user.loadFromJson(dataUser);
+
+            this.addLine(dataUser);
+        });
+
+    }
+
+    getUsersStorage(){
+
+        let users = [];
+
+        if(sessionStorage.getItem("users")){                             // Verifica se tem users já cadastados no sessionStorage.
+
+            users = JSON.parse(sessionStorage.getItem("users"))          // Existindo ele  insere na variável users os já existentes para que seja adicionado um novo a seguir com o push().
+        }
+
+        return users;
+    }
+
+
     addEventsTr(tr){
+
+        tr.querySelector(".btn-delete").addEventListener('click', event =>{               // Seleciona a tag do botão de deletar.
+
+            if(confirm("Deseja realmente excluir o usuário?")) {                          // Pergunta se tem certeza.
+
+                tr.remove();                                                              // Remove o registro da lista.
+
+                this.countUsers();                                                        // Atualiza a contagem de usuários.
+            }
+   
+           });
 
         
         tr.querySelector(".btn-edit").addEventListener('click', event => {
 
-            let json = JSON.parse(tr.dataset.user);                     // Armazena em json a string guardada no atributo data-user na tag tr
-            let form = document.querySelector("#box-user-update");      // Seleciona o id do formulário.
+            let json = JSON.parse(tr.dataset.user);                                       // Armazena em json a string guardada no atributo data-user na tag tr
             
-            form.dataset.trIndex = tr.sectionRowIndex;                  // Toma o índice da linha. primeira linha é indice zero.
+            this.formElementUpdate.dataset.trIndex = tr.sectionRowIndex;                  // escreve na tag de id box-user-update o atributo data-tr-index com seu respectivo índice de linha 
 
-            for (let index in json){                                    // Laço for in varre objeto json obtendo seus parâmetros.
+            for (let index in json){                                                      // Laço for in varre objeto json obtendo seus parâmetros.
 
-                let field = form.querySelector(`[name = ${index}]`);    // Guarda no objeto field as tags que possuem atributos name (name=name, name=gender, name=birth...)
-                                                                        // sendo o valor do atributo oriundo do índice do for in (index)
+                let field = this.formElementUpdate.querySelector(`[name = ${index}]`);    // Guarda no objeto field as tags que possuem atributos name (name=name, name=gender, name=birth...)
+                                                                                          // sendo o valor do atributo oriundo do índice do for in (index)
                 
                 if(field){
                    
                     switch(field.type){
 
-                        case 'file':                                    // Verifica o type do tag photo e manda prosseguir. o continue faz ignorar o resto das instruções e pula próximo laço. 
-                            continue;
+                        case 'file':                                                      // Verifica o type do tag photo e manda prosseguir.  
+                            continue;                                                     // O continue faz ignorar o resto das instruções e pula próximo laço.
                             break;
 
                         case 'radio':
-                            field = form.querySelector(`[name=${index}][value=${json[index]}]`);    // Seletor captura as tagsq ue contém name=radio e value=M ou value=F.
-                            field.checked = true;                                                   // Marca o seletor selecionado
+                            field = this.formElementUpdate.querySelector(`[name=${index}][value=${json[index]}]`);    // Seletor captura as tagsq ue contém name=radio e value=M ou value=F.
+                            field.checked = true;                                                                     // Marca o seletor selecionado
                             break;
 
                         case 'checkbox':
@@ -258,6 +346,8 @@ class UserController {
                 }
                 
             }
+
+            this.formElementUpdate.querySelector(".photo").src = json.photo;
             
             this.showPanelUpdate();
             
@@ -267,7 +357,6 @@ class UserController {
 
     }
 
-    
 
     countUsers(){ 
 
@@ -290,12 +379,14 @@ class UserController {
 
     }
 
+
     showPanelUpdate(){
 
         document.querySelector("#box-user-create").style.display = "none";
         document.querySelector("#box-user-update").style.display = "block";
 
     }
+
 
     showPanelCreate(){
 
