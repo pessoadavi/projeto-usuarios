@@ -32,7 +32,7 @@ class UserController {
                 (content)=>{                                                  // Função com o retorno do método caso a promisse seja atendida (resolve)
                     values.setPhoto = content;                                // Guarda a imagem no atributo photo do objecto values   
 
-                    this.insert(values);
+                    this.insert(values);                                      // Chama método para inseir os dados no sessionStorage
 
                     this.addLine(values);                                     // Método que renderiza os dados do formulário a partir dos dados armazenados pelo getFormValues()
 
@@ -84,11 +84,11 @@ class UserController {
 
                 if(!values.getPhoto){
                     
-                    result.photo = oldUser.photo;
+                    result.setPhoto = oldUser.getPhoto;
                 
                 } else {
 
-                    result.photo = content;
+                    result.setPhoto = content;
                 }  
                 
                 tr.dataset.user = JSON.stringify(result);                  // Reescreve o data-user já existente na tag tr com os novos valores do objeto values
@@ -109,8 +109,6 @@ class UserController {
             `;
 
                 this.addEventsTr(tr);
-
-                this.deleteUser(tr);
 
                 this.countUsers();
 
@@ -229,8 +227,6 @@ class UserController {
 
     let tr = document.createElement("tr");                              // Cria a tag tr
    
-    //this.insert(dataUser);
-
     tr.dataset.user = JSON.stringify(dataUser);                         // Neste caso cria no elemento tr um atributo 'data-user' contento uma string (escrito por JSON.stringify)
                                                                         // a partir do parâmetro que o método recebeu (objeto datauser).    
 
@@ -261,11 +257,24 @@ class UserController {
     insert(data){
 
         let users = this.getUsersStorage();
-        
+     
         users.push(data);                                              // Insere o novo usuários no array de users.
 
         sessionStorage.setItem("users", JSON.stringify(users));         // Converte novamente para string e guarda novamente em users.
 
+    }
+
+
+    getUsersStorage(){
+
+        let users = [];
+
+        if(sessionStorage.getItem("users")){                             // Verifica se tem users já cadastados.
+
+            users = JSON.parse(sessionStorage.getItem("users"));         // Existindo ele  insere na variável users os já existentes para que seja adicionado um novo a seguir com o push().
+        }
+
+        return users;
     }
 
 
@@ -282,18 +291,6 @@ class UserController {
             this.addLine(dataUser);
         });
 
-    }
-
-    getUsersStorage(){
-
-        let users = [];
-
-        if(sessionStorage.getItem("users")){                             // Verifica se tem users já cadastados no sessionStorage.
-
-            users = JSON.parse(sessionStorage.getItem("users"))          // Existindo ele  insere na variável users os já existentes para que seja adicionado um novo a seguir com o push().
-        }
-
-        return users;
     }
 
 
