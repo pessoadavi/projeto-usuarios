@@ -32,7 +32,7 @@ class UserController {
                 (content)=>{                                                  // Função com o retorno do método caso a promisse seja atendida (resolve)
                     values.setPhoto = content;                                // Guarda a imagem no atributo photo do objecto values   
 
-                    this.insert(values);                                      // Chama método para inseir os dados no sessionStorage
+                    values.save();
 
                     this.addLine(values);                                     // Método que renderiza os dados do formulário a partir dos dados armazenados pelo getFormValues()
 
@@ -90,28 +90,14 @@ class UserController {
 
                     result.setPhoto = content;
                 }  
+
+                let user = new User();
+
+                user.loadFromJson(result)
+
+                user.save();
                 
-                tr.dataset.user = JSON.stringify(result);                  // Reescreve o data-user já existente na tag tr com os novos valores do objeto values
-
-                                                                           // Imprime na listagem os valores atualizados
-            tr.innerHTML = `                                        
-                                                                        
-                <td><img src="${result.photo}" alt="User Image" class="img-circle img-sm"></td>
-                <td>${result.name}</td>
-                <td>${result.email}</td>
-                <td>${result.admin}</td>
-                <td>${Utils.dateFormat(result.register)}</td>
-                 <td>
-                    <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
-                    <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
-                </td>
-       
-            `;
-
-            //<td>${Utils.dateFormat(result.register)}</td>
-
-
-                this.addEventsTr(tr);
+                this.getTr(user, tr);
 
                 this.countUsers();
 
@@ -200,7 +186,6 @@ class UserController {
             let file = elements[0].files[0];                                // atributo files[0] contém as informações do arquivo que foi lido como verificado no consolo.log
                                                                             // o index é [0], pois pode ser mais de um arquivo. Então pego o primeiro.
     
-
             if(file){
                 
                 fileReader.readAsDataURL(file);                             // Método que lê o conteúdo do arquivo
@@ -226,74 +211,17 @@ class UserController {
     }
 
 
-    addLine(dataUser){                                                  // Método que recebe o objeto objectUser do tipo User e renderiza valores na tabela      
-
-    let tr = document.createElement("tr");                              // Cria a tag tr
-   
-    tr.dataset.user = JSON.stringify(dataUser);                         // Neste caso cria no elemento tr um atributo 'data-user' contento uma string (escrito por JSON.stringify)
-                                                                        // a partir do parâmetro que o método recebeu (objeto datauser).    
-
-                                                                        // innerHTML envia para a DOM na tag do id associado a tableElement o HTML abaixo.    
-        tr.innerHTML = `
-                                                                        
-            <td><img src="${dataUser.photo}" alt="User Image" class="img-circle img-sm"></td>
-            <td>${dataUser.name}</td>
-            <td>${dataUser.email}</td>
-            <td>${dataUser.admin}</td>
-            <td>${Utils.dateFormat(dataUser.register)}</td>
-            <td>
-                <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
-                <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
-            </td>
-       
-        `;
-
-        //<td>${Utils.dateFormat(dataUser.register)}</td>
-
-        this.addEventsTr(tr);
-    
-        this.tableElement.appendChild(tr);                             // AppendChild adiciona html como elemento filho do atual
-
-        this.countUsers();                                             // Atualiza a contagem de usuários.
-
-    }
-
-
-    insert(data){
-
-        let users = this.getUsersStorage();
-     
-        users.push(data);                                              // Insere o novo usuários no array de users.
-
-        //sessionStorage.setItem("users", JSON.stringify(users));      // Converte novamente para string e guarda novamente em users.
-        localStorage.setItem("users", JSON.stringify(users));
-    }
-
-
-    getUsersStorage(){
-
-        let users = [];
-
-        if(localStorage.getItem("users")){                             // Verifica se tem users já cadastados.
-
-            users = JSON.parse(localStorage.getItem("users"));         // Existindo ele  insere na variável users os já existentes para que seja adicionado um novo a seguir com o push().
-        }
-
-        return users;
-    }
-
-
     selectAll(){
 
-        let users = this.getUsersStorage();
+        let users = User.getUsersStorage();                             // Chama método estático na classe User. 
 
         users.forEach(dataUser =>{
 
-            //let user = new User();                                    
+            let user = new User();                                    
 
-            //user.loadFromJson(dataUser);                              // user chama método loadFromJson passando o dataUser. Habilite as duas linhas e desabilite
+            user.loadFromJson(dataUser);                                // user chama método loadFromJson passando o dataUser. Habilite as duas linhas e desabilite
                                                                         // as linhas 5 e 7 de Utils.js que o efeito será o mesmo. 
-            this.addLine(dataUser);
+            this.addLine(user);
         });
 
     }
@@ -359,6 +287,46 @@ class UserController {
 
     }
 
+    addLine(dataUser){                                                  // Método que recebe o objeto objectUser do tipo User e renderiza valores na tabela      
+    
+        let tr = this.getTr(dataUser);
+
+        this.tableElement.appendChild(tr);                             // AppendChild adiciona html como elemento filho do atual
+
+        this.countUsers();                                             // Atualiza a contagem de usuários.
+
+    }
+
+    getTr(dataUser, tr = null){
+
+        if(tr === null) {
+            
+            tr = document.createElement("tr");                          // Cria a tag tr
+        }
+
+        tr.dataset.user = JSON.stringify(dataUser);                     // Neste caso cria no elemento tr um atributo 'data-user' contento uma string (escrito por JSON.stringify)
+                                                                        // a partir do parâmetro que o método recebeu (objeto datauser).    
+
+                                                                        // innerHTML envia para a DOM na tag do id associado a tableElement o HTML abaixo.    
+        tr.innerHTML = `
+                                                                        
+            <td><img src="${dataUser.photo}" alt="User Image" class="img-circle img-sm"></td>
+            <td>${dataUser.name}</td>
+            <td>${dataUser.email}</td>
+            <td>${dataUser.admin}</td>
+            <td>${Utils.dateFormat(dataUser.register)}</td>
+            <td>
+                <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
+                <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
+            </td>
+       
+        `;
+
+        this.addEventsTr(tr);
+
+        return tr;
+        
+    }
 
     countUsers(){ 
 
