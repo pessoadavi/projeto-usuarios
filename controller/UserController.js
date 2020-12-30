@@ -8,7 +8,7 @@ class UserController {
         
         this.onSubmit();                                                // Inicializa o método.
         this.onEdit();                                                  // Inicializa o método.
-        this.selectAll();
+        this.selectAll();                                               // Inicializa o método.
 
     }
 
@@ -101,12 +101,15 @@ class UserController {
                 <td>${result.email}</td>
                 <td>${result.admin}</td>
                 <td>${Utils.dateFormat(result.register)}</td>
-                <td>
+                 <td>
                     <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
                     <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
                 </td>
        
             `;
+
+            //<td>${Utils.dateFormat(result.register)}</td>
+
 
                 this.addEventsTr(tr);
 
@@ -186,7 +189,7 @@ class UserController {
             
             let fileReader = new FileReader();                              // Objeto do tipo FileReader
 
-            let elements = [...formEl.elements].filter(item =>{   // Método filter retorna um valor do array especificada pela função de callback (item)
+            let elements = [...formEl.elements].filter(item =>{             // Método filter retorna um valor do array especificada pela função de callback (item)
     
                 if(item.name === "photo") {                                 // Nome do item é photo? Se sim ele retorna o valor e guarda em elements
                     return item;
@@ -245,6 +248,8 @@ class UserController {
        
         `;
 
+        //<td>${Utils.dateFormat(dataUser.register)}</td>
+
         this.addEventsTr(tr);
     
         this.tableElement.appendChild(tr);                             // AppendChild adiciona html como elemento filho do atual
@@ -260,8 +265,8 @@ class UserController {
      
         users.push(data);                                              // Insere o novo usuários no array de users.
 
-        sessionStorage.setItem("users", JSON.stringify(users));         // Converte novamente para string e guarda novamente em users.
-
+        //sessionStorage.setItem("users", JSON.stringify(users));      // Converte novamente para string e guarda novamente em users.
+        localStorage.setItem("users", JSON.stringify(users));
     }
 
 
@@ -269,9 +274,9 @@ class UserController {
 
         let users = [];
 
-        if(sessionStorage.getItem("users")){                             // Verifica se tem users já cadastados.
+        if(localStorage.getItem("users")){                             // Verifica se tem users já cadastados.
 
-            users = JSON.parse(sessionStorage.getItem("users"));         // Existindo ele  insere na variável users os já existentes para que seja adicionado um novo a seguir com o push().
+            users = JSON.parse(localStorage.getItem("users"));         // Existindo ele  insere na variável users os já existentes para que seja adicionado um novo a seguir com o push().
         }
 
         return users;
@@ -284,10 +289,10 @@ class UserController {
 
         users.forEach(dataUser =>{
 
-            let user = new User();
+            //let user = new User();                                    
 
-            user.loadFromJson(dataUser);
-
+            //user.loadFromJson(dataUser);                              // user chama método loadFromJson passando o dataUser. Habilite as duas linhas e desabilite
+                                                                        // as linhas 5 e 7 de Utils.js que o efeito será o mesmo. 
             this.addLine(dataUser);
         });
 
