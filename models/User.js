@@ -170,10 +170,10 @@ class User {
     getNewId(){
 
 
-        let id, users = User.getUsersStorage();
-        
-        users.filter((value) => {
-            value.id ? id = value.id + 1 : id = 0
+        let id, users = User.getUsersStorage();                       // Adiciona os registros do Sotorage.
+
+        users.filter((value) => {                                     // value recebe as interações de cada item da array
+            value.id ? id = value.id + 1 : id = 0;                    // Verifica se existe id. se sim o novo é o atual +1, se não é zero.
         })
         return id
     }
@@ -197,7 +197,7 @@ class User {
 
         } else {
 
-                this.id = this.getNewId();
+                this.id = this.getNewId();                                     // Método para gerar um id
 
                 users.push(this);                                              // Insere o novo usuários no array de users.
 
