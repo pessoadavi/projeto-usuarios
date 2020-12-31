@@ -20,6 +20,9 @@ class User {
         return this.id;
     }
 
+    /**
+     * @param {any} id
+     */
     set setId(id){
         this.id = id;
     }
@@ -28,6 +31,9 @@ class User {
         return this.name;
     }
 
+    /**
+     * @param {any} name
+     */
     set setName(name){
         this.name = name;
     }
@@ -36,6 +42,9 @@ class User {
         return this.gender;
     }
 
+    /**
+     * @param {any} gender
+     */
     set setGender(gender){
         this.gender = gender;
     }
@@ -44,6 +53,9 @@ class User {
         return this.birth;
     }
 
+    /**
+     * @param {any} birth
+     */
     set setBirth(birth){
         this.birth = birth;
     }
@@ -52,6 +64,9 @@ class User {
         return this.country;
     }
 
+    /**
+     * @param {any} country
+     */
     set setCountry(country){
         this.country = country;
     }
@@ -60,6 +75,9 @@ class User {
         return this.email;
     }
 
+    /**
+     * @param {any} email
+     */
     set setEmail(email){
         this.email = email;
     }
@@ -68,6 +86,9 @@ class User {
         return this.password;
     }
 
+    /**
+     * @param {any} password
+     */
     set setPassword(password){
         this.password = password;
     }
@@ -76,20 +97,42 @@ class User {
         return this.photo;
     }
 
-    set setPhoto(photo){
-        this.photo = photo;
+    /**
+     * @param {any} value
+     */
+    set setPhoto(value){
+        this.photo = value;
     }
 
     get getAdmin(){
         return this.admin;
     }
 
+    /**
+     * @param {any} admin
+     */
     set setAdmin(admin){
         this.admin = admin;
     }
 
     get getRegister(){
         return this.register;
+    }
+
+    deleteFromStorage(){
+
+        let users = User.getUsersStorage();
+
+        users.forEach( (userData, index) => {
+
+            if(this.id == userData.id){
+
+                users.splice(index, 1)              // Splice retira do array o a partir índice especificado por index e retira a quantidade de itens definidos (1)
+            }
+        });
+
+        localStorage.setItem("users", JSON.stringify(users));
+
     }
 
     loadFromJson(json){
@@ -112,7 +155,7 @@ class User {
 
     }
 
-    static getUsersStorage(){
+    static getUsersStorage(){                                          // Método que captura os valores do usuário no storage.
 
         let users = [];
 
@@ -127,11 +170,12 @@ class User {
     getNewId(){
 
 
-        if(!window.id) window.id = 0;            // Na aplicação global não existe id? // Crio o id caso não exista.
-                                        
-            id++;                                // Se existir soma-se para criar uma nova.
-
-            return id;
+        let id, users = User.getUsersStorage();
+        
+        users.filter((value) => {
+            value.id ? id = value.id + 1 : id = 0
+        })
+        return id
     }
 
     save(){
