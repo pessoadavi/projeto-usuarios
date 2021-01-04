@@ -227,11 +227,12 @@ class UserController {
     }
 
 
-    addEventsTr(tr){
+    addEventsTr(tr){                                                                      // Método quando botão  deletar foi clicado
 
         tr.querySelector(".btn-delete").addEventListener('click', event =>{               // Seleciona a tag do botão de deletar.
 
             if(confirm("Deseja realmente excluir o usuário?")) {                          // Pergunta se tem certeza.
+
 
                 let user = new User();                                                    // Cria objeto local user.
 
@@ -244,7 +245,7 @@ class UserController {
                 this.countUsers();                                                        // Atualiza a contagem de usuários.
             }
    
-           });
+           }); 
 
         
         tr.querySelector(".btn-edit").addEventListener('click', event => {
@@ -267,7 +268,7 @@ class UserController {
                             break;
 
                         case 'radio':
-                            field = this.formElementUpdate.querySelector(`[name=${index}][value=${json[index]}]`);    // Seletor captura as tagsq ue contém name=radio e value=M ou value=F.
+                            field = this.formElementUpdate.querySelector(`[name=${index}][value=${json[index]}]`);    // Seletor captura as tags que contém name=radio e value=M ou value=F.
                             field.checked = true;                                                                     // Marca o seletor selecionado
                             break;
 
