@@ -84,14 +84,14 @@ class UserController {
 
                 if(!values.getPhoto){
                     
-                    result.setPhoto = oldUser.getPhoto;
+                    result.setPhoto = oldUser.photo;
                 
                 } else {
 
                     result.setPhoto = content;
                 }  
 
-                let user = new User();
+                let user = new User();                                      // Instancia o user, pois result virou um arquivo json devido o assign de dois jsons.
 
                 user.loadFromJson(result)
 
@@ -233,7 +233,13 @@ class UserController {
 
             if(confirm("Deseja realmente excluir o usuário?")) {                          // Pergunta se tem certeza.
 
-                tr.remove();                                                              // Remove o registro da lista.
+                let user = new User();                                                    // Cria objeto local user.
+
+                user.loadFromJson(JSON.parse(tr.dataset.user));                           // converte json o dados da string na tag tr e converte em objeto pelo método loadFromJson.
+
+                user.deleteFromStorage();                                                 // Método para apagar do local storage.  
+
+                tr.remove();                                                              // Remove o registro renderizado no html.
 
                 this.countUsers();                                                        // Atualiza a contagem de usuários.
             }

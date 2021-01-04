@@ -126,12 +126,31 @@ class User {
 
     getNewId(){
 
+        let usersID = parseInt(localStorage.getItem('usersID'));
+        
+        if(!usersID) usersID = 0;
 
-        if(!window.id) window.id = 0;            // Na aplicação global não existe id? // Crio o id caso não exista.
-                                        
-            id++;                                // Se existir soma-se para criar uma nova.
+        usersID++
 
-            return id;
+        localStorage.setItem("usersID", usersID);
+
+        return usersID;
+    }
+
+    deleteFromStorage(){
+
+        let users = User.getUsersStorage();
+
+        users.forEach((dataUser, index)=>{
+
+            if(this.id == dataUser.id){
+
+                users.splice(index, 1);         // Splice seleciona o item do array (index) e diz quantos itens irá remover a partir dali (no caso 1).
+            }
+        });
+
+        localStorage.setItem("users", JSON.stringify(users));
+
     }
 
     save(){
@@ -144,7 +163,7 @@ class User {
 
                 if(u.id == this.id){             // id varrido é o mesmo que quero editar?
 
-                    Object.assign(u, this);      // Substitui dados do objeto atual no mapeado de acordo com o id.
+                    Object.assign(u, this);      // Substitui dados do objeto this no mapeado u.
                 }
 
                 return u;
@@ -159,7 +178,6 @@ class User {
 
         }
      
-        //sessionStorage.setItem("users", JSON.stringify(users));      // Converte novamente para string e guarda novamente em users.
         localStorage.setItem("users", JSON.stringify(users));
 
     }
